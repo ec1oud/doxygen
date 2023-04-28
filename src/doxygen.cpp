@@ -287,7 +287,7 @@ static bool findClassRelation(
 //----------------------------------------------------------------------------
 
 static Definition *findScopeFromQualifiedName(NamespaceDefMutable *startScope,const QCString &n,
-                                              FileDef *fileScope,const TagInfo *tagInfo);
+                                              FileDef *fileScope,const TagInfo *tagInfo, int depth = 0);
 
 static void addPageToContext(PageDef *pd,Entry *root)
 {
@@ -736,8 +736,8 @@ static Definition *buildScopeFromQualifiedName(const QCString &name_,SrcLangExt 
   return prevScope;
 }
 
-static Definition *findScopeFromQualifiedName(NamespaceDefMutable *startScope,const QCString &n,
-                                              FileDef *fileScope,const TagInfo *tagInfo)
+static Definition *findScopeFromQualifiedName(NamespaceDefMutable *startScope, const QCString &n,
+                                              FileDef *fileScope, const TagInfo *tagInfo, int depth)
 {
   //printf("<findScopeFromQualifiedName(%s,%s)\n",startScope ? qPrint(startScope->name()) : 0, qPrint(n));
   Definition *resultScope=toDefinition(startScope);
@@ -760,12 +760,12 @@ static Definition *findScopeFromQualifiedName(NamespaceDefMutable *startScope,co
     //printf("  resultScope=%p\n",resultScope);
     if (resultScope==0)
     {
-      if (orgScope==Doxygen::globalScope && fileScope && !fileScope->getUsedNamespaces().empty())
+      if (orgScope==Doxygen::globalScope && fileScope && !fileScope->getUsedNamespaces().empty() && depth < 10)
         // also search for used namespaces
       {
         for (const auto &nd : fileScope->getUsedNamespaces())
         {
-          resultScope = findScopeFromQualifiedName(toNamespaceDefMutable(nd),n,fileScope,tagInfo);
+          resultScope = findScopeFromQualifiedName(toNamespaceDefMutable(nd),n,fileScope,tagInfo, depth + 1);
           if (resultScope!=0) break;
         }
         if (resultScope)
